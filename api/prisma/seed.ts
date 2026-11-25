@@ -2,6 +2,12 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcryptjs";
 import { PrismaClient } from "../src/generated/prisma/client.js";
 
+try {
+  process.loadEnvFile(".env");
+} catch {
+  /* no file: use the real environment (CI) */
+}
+
 const db = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }) });
 
 // Same data for everyone: a demo that looks the same on every machine.

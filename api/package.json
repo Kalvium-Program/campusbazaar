@@ -14,7 +14,7 @@
     "test": "vitest run",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
-    "db:seed": "tsx --env-file=.env prisma/seed.ts",
+    "db:seed": "tsx prisma/seed.ts",
     "db:test:setup": "ENV_FILE=.env.test prisma migrate deploy"
   },
   "dependencies": {
