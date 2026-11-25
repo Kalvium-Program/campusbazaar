@@ -1,0 +1,80 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Category {
+  BOOKS
+  ELECTRONICS
+  FURNITURE
+  CYCLES
+  CLOTHING
+  OTHER
+}
+
+enum Condition {
+  NEW
+  LIKE_NEW
+  GOOD
+  FAIR
+}
+
+enum Status {
+  AVAILABLE
+  SOLD
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  name         String
+  email        String    @unique
+  passwordHash String
+  role         Role      @default(USER)
+  createdAt    DateTime  @default(now())
+  listings     Listing[]
+  sent         Message[] @relation("sent")
+  received     Message[] @relation("received")
+}
+
+model Listing {
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String
+  priceRupees Int
+  category    Category
+  condition   Condition
+  status      Status    @default(AVAILABLE)
+  imageData   Bytes?
+  imageType   String?
+  ownerId     Int
+  owner       User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  messages    Message[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([status, createdAt])
+  @@index([ownerId])
+}
+
+model Message {
+  id         Int      @id @default(autoincrement())
+  body       String
+  listingId  Int
+  listing    Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  senderId   Int
+  sender     User     @relation("sent", fields: [senderId], references: [id], onDelete: Cascade)
+  receiverId Int
+  receiver   User     @relation("received", fields: [receiverId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@index([listingId, createdAt])
+}

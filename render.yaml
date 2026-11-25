@@ -1,0 +1,15 @@
+# Render Blueprint: creates the API from this file. The database is on Neon (see README).
+services:
+  - type: web
+    name: campusbazaar-api
+    runtime: docker
+    dockerfilePath: ./api/Dockerfile
+    dockerContext: ./api
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - { key: NODE_ENV, value: production }
+      - { key: DATABASE_URL, sync: false }
+      - { key: JWT_SECRET, generateValue: true }
+      - { key: WEB_ORIGIN, sync: false }
+      - { key: AI_PROVIDER, value: fake }

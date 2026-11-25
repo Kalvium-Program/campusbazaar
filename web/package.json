@@ -1,0 +1,26 @@
+{
+  "name": "campusbazaar-web",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.108.4",
+    "next": "^16.4.6",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.1",
+    "@types/node": "^22.20.7",
+    "@types/react": "^19.3.2",
+    "@types/react-dom": "^19.3.0",
+    "typescript": "5.9"
+  },
+  "private": true,
+  "type": "module"
+}
