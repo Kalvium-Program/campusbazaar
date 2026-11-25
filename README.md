@@ -2,7 +2,7 @@
 
 A small marketplace where students buy and sell used books, gadgets, cycles and furniture on campus. It is the **reference app** for the Kalvium course *AI-Powered Full Stack Web Development*: a complete, working product built only with the tools the course teaches.
 
-> Live demo: https://campusbazaar-phi.vercel.app · API: https://campusbazaar-api.onrender.com · Log in with `aarav@campus.test` / `campus123`
+> Live demo: https://campusbazaar-phi.vercel.app · API: https://campusbazaar-api.onrender.com
 
 ## What you can do
 
@@ -22,7 +22,7 @@ A small marketplace where students buy and sell used books, gadgets, cycles and 
 | Login | bcrypt, signed token in an HttpOnly cookie | `api/src/auth.ts`, `api/src/routes/auth.ts` |
 | Roles and ownership | `requireAuth`, `requireRole`, owner-only edits | `api/src/auth.ts`, `api/src/routes/listings.ts` |
 | File upload | multer, 2 MB, type checked, stored in the database | `api/src/routes/listings.ts` |
-| AI feature | one `Provider` function, fake by default, validate and retry | `api/src/ai.ts` |
+| AI feature | one `Provider` function, drafts title, description, price, category and condition. Fake by default, any OpenAI-compatible model in production. Validate and retry | `api/src/ai.ts` |
 | Real time | `ws`, one-time ticket plus Origin check | `api/src/ws.ts` |
 | Frontend | Next.js 16 (App Router), TanStack Query 5, plain CSS | `web/app`, `web/components` |
 | Server components | the listing page renders on the server | `web/app/listings/[id]/page.tsx` |
@@ -63,7 +63,7 @@ npm run dev                     # http://localhost:3000
 
 Or with Docker: `docker compose up --build`, then run the seed once with `docker compose exec api npx tsx prisma/seed.ts`.
 
-Demo accounts (password `campus123`): `aarav@campus.test`, `diya@campus.test`, and `admin@campus.test` (admin).
+Sign up with any email to try it. The seed users are sample sellers with random passwords. For local tests set `SEED_PASSWORD=campus123` before `npm run db:seed` (CI does this).
 
 ## Tests
 

@@ -11,7 +11,10 @@ try {
 const db = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }) });
 
 // Same data for everyone: a demo that looks the same on every machine.
-const PASSWORD = "campus123";
+// The seed users are sample sellers, not logins. Nobody gets their password:
+// it is random unless SEED_PASSWORD is set (CI and local tests set it).
+import { randomBytes } from "node:crypto";
+const PASSWORD = process.env.SEED_PASSWORD ?? randomBytes(24).toString("hex");
 const users = [
   { name: "Aarav Mehta", email: "aarav@campus.test", role: "USER" as const },
   { name: "Diya Nair", email: "diya@campus.test", role: "USER" as const },
@@ -110,6 +113,6 @@ async function main() {
       ],
     });
   }
-  console.log(`Seeded ${created.length} users and ${listings.length} listings. Password for all: ${PASSWORD}`);
+  console.log(`Seeded ${created.length} users and ${listings.length} listings. ${process.env.SEED_PASSWORD ? "Password set from SEED_PASSWORD." : "Seed accounts have a random password."}`);
 }
 main().finally(() => db.$disconnect());

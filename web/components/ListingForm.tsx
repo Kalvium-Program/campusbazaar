@@ -5,7 +5,7 @@ import { useRef, useState, type FormEvent } from "react";
 import { api, ApiError, CATEGORIES, CONDITIONS, imageUrl, post, type Listing } from "@/lib/api";
 import { Field } from "./Field";
 
-type Draft = { title: string; description: string; priceRupees: number };
+type Draft = { title: string; description: string; priceRupees: number; category: string; condition: string };
 
 export function ListingForm({ existing }: { existing?: Listing }) {
   const router = useRouter();
@@ -20,11 +20,13 @@ export function ListingForm({ existing }: { existing?: Listing }) {
   const setField = (name: string, value: string) => { const el = field(name); if (el) el.value = value; };
 
   const draft = useMutation({
-    mutationFn: () => post<{ draft: Draft }>("/ai/draft", { notes: aiNotes, category: getField("category") }),
+    mutationFn: () => post<{ draft: Draft }>("/ai/draft", { notes: aiNotes }),
     onSuccess: ({ draft }) => {
       setField("title", draft.title);
       setField("description", draft.description);
       setField("priceRupees", String(draft.priceRupees));
+      setField("category", draft.category);
+      setField("condition", draft.condition);
       setAiMsg({ kind: "ok", text: "Draft ready. Read it, fix anything that is wrong, then post. You are the seller, not the AI." });
     },
     onError: (e) => setAiMsg({ kind: "error", text: e instanceof Error ? e.message : "The helper failed" }),
@@ -53,7 +55,7 @@ export function ListingForm({ existing }: { existing?: Listing }) {
       {!existing && (
         <div className="card pad">
           <h2>Let the AI write a first draft</h2>
-          <p className="muted small">Type a few words about the item. The helper suggests a title, a description and a fair price. It can be wrong, so always check it.</p>
+          <p className="muted small">Type a few words about the item. The helper suggests a title, description, price, category and condition. It can be wrong, so always check it.</p>
           <label className="sr-only" htmlFor="notes">Notes about your item</label>
           <textarea id="notes" className="input" style={{ minHeight: 70 }} value={aiNotes} onChange={(e) => setAiNotes(e.target.value)} placeholder="e.g. Hero cycle, 21 gears, new tyres, about 4000 rupees" />
           <div className="row" style={{ marginTop: "0.6rem" }}>

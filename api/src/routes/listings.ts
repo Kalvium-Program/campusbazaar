@@ -3,6 +3,7 @@ import multer from "multer";
 import { z } from "zod";
 import { requireAuth } from "../auth.js";
 import { db } from "../db.js";
+import { rateLimit } from "../rateLimit.js";
 import { forbidden, HttpError, notFound } from "../errors.js";
 import type { Prisma } from "../generated/prisma/client.js";
 
@@ -97,7 +98,7 @@ function readImage(file: Express.Multer.File | undefined) {
   return { imageData: new Uint8Array(file.buffer), imageType: file.mimetype };
 }
 
-listingsRouter.post("/", requireAuth, upload.single("photo"), async (req, res) => {
+listingsRouter.post("/", requireAuth, rateLimit(10, 3600_000, (req) => String(req.user?.id)), upload.single("photo"), async (req, res) => {
   const data = listingBody.parse(req.body);
   const row = await db.listing.create({ data: { ...data, ...readImage(req.file), ownerId: req.user!.id }, select });
   res.status(201).json({ listing: shape(row) });

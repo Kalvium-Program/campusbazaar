@@ -60,7 +60,7 @@ test("sign up, post a listing with the AI helper, mark sold, delete", async ({ p
   await expect(page.getByRole("status")).toContainText("Draft ready");
   await expect(page.getByLabel("Title")).toHaveValue(/Hero cycle/);
   await expect(page.getByLabel("Price (₹)")).toHaveValue("4000");
-  await page.getByLabel("Category").selectOption("CYCLES");
+  await expect(page.getByLabel("Category")).toHaveValue("CYCLES");
   await page.getByRole("button", { name: "Post listing" }).click();
 
   await expect(page.getByRole("heading", { level: 1 })).toContainText(/Hero cycle/);

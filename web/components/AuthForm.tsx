@@ -61,7 +61,6 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
       <p className="muted small" style={{ marginTop: "1rem" }}>
         {isSignup ? <>Already have an account? <Link href="/login"><u>Log in</u></Link></> : <>New here? <Link href="/signup"><u>Create an account</u></Link></>}
       </p>
-      {!isSignup && <p className="hint">Demo: <code>aarav@campus.test</code> / <code>campus123</code></p>}
     </div>
   );
 }

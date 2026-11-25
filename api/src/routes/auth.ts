@@ -3,7 +3,7 @@ import { z } from "zod";
 import { COOKIE, cookieOptions, hashPassword, requireAuth, signToken, verifyPassword } from "../auth.js";
 import { db } from "../db.js";
 import { HttpError } from "../errors.js";
-import { rateLimit } from "../rateLimit.js";
+import { clientIp, rateLimit } from "../rateLimit.js";
 
 export const authRouter = Router();
 
@@ -14,10 +14,12 @@ const signupBody = z.object({
 });
 const loginBody = z.object({ email: z.string().trim().toLowerCase().email(), password: z.string().min(1) });
 
-const limiter = rateLimit(20, 60_000, (req) => req.ip ?? "unknown");
+// Signup: per visitor. Login: per email, so guessing one password is slow but a busy campus network is fine.
+const signupLimiter = rateLimit(15, 10 * 60_000, clientIp);
+const loginLimiter = rateLimit(10, 5 * 60_000, (req) => `${String(req.body?.email ?? "").toLowerCase()}|${clientIp(req)}`);
 const publicUser = { id: true, name: true, email: true, role: true } as const;
 
-authRouter.post("/signup", limiter, async (req, res) => {
+authRouter.post("/signup", signupLimiter, async (req, res) => {
   const body = signupBody.parse(req.body);
   const exists = await db.user.findUnique({ where: { email: body.email } });
   if (exists) throw new HttpError(409, "EMAIL_TAKEN", "That email is already registered", { email: "Already registered" });
@@ -28,7 +30,7 @@ authRouter.post("/signup", limiter, async (req, res) => {
   res.cookie(COOKIE, signToken(user.id), cookieOptions).status(201).json({ user });
 });
 
-authRouter.post("/login", limiter, async (req, res) => {
+authRouter.post("/login", loginLimiter, async (req, res) => {
   const body = loginBody.parse(req.body);
   const row = await db.user.findUnique({ where: { email: body.email } });
   // Same message for "no such email" and "wrong password": never say which one.
