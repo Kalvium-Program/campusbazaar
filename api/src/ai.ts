@@ -67,7 +67,7 @@ export const openAiProvider: Provider = async ({ notes }, signal) => {
       ],
     }),
   });
-  if (!res.ok) throw new Error(`AI provider returned ${res.status}`);
+  if (!res.ok) throw new Error(`AI provider returned ${res.status}: ${(await res.text()).slice(0, 300)}`);
   const json = (await res.json()) as { choices?: { message?: { content?: string } }[] };
   return json.choices?.[0]?.message?.content ?? "";
 };
@@ -93,8 +93,10 @@ export async function draftListing(input: DraftInput, provider: Provider = defau
       const raw = await provider(attempt === 0 ? input : { ...input, notes: `${input.notes}\n(Reply with valid JSON only.)` }, ctrl.signal);
       const draft = parseDraft(raw);
       if (draft) return draft;
+      console.error(`[ai] attempt ${attempt + 1} invalid reply:`, raw.slice(0, 300));
     } catch (e) {
       if (e instanceof HttpError) throw e;
+      console.error(`[ai] attempt ${attempt + 1} failed:`, e instanceof Error ? e.message : e);
       if (attempt === 1) break;
     } finally {
       clearTimeout(timer);
