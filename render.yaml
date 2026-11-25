@@ -1,4 +1,4 @@
-# Render Blueprint: the API and the web app. The database is on Neon (see README).
+# Render Blueprint: the API. The web app is on Vercel and the database is on Neon (see README).
 services:
   - type: web
     name: campusbazaar-api
@@ -13,13 +13,3 @@ services:
       - { key: JWT_SECRET, generateValue: true }
       - { key: WEB_ORIGIN, sync: false }
       - { key: AI_PROVIDER, value: fake }
-
-  - type: web
-    name: campusbazaar-web
-    runtime: docker
-    dockerfilePath: ./web/Dockerfile
-    dockerContext: ./web
-    plan: free
-    envVars:
-      - { key: API_URL, value: "https://campusbazaar-api.onrender.com" }
-      - { key: NEXT_PUBLIC_WS_URL, value: "wss://campusbazaar-api.onrender.com/ws" }

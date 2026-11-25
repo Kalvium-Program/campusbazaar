@@ -81,8 +81,8 @@ npm run test:e2e                          # 7 browser tests; needs API and web r
 ## Deploy (all free tiers)
 
 1. **Database:** create a project on Neon and copy the pooled connection string.
-2. **Render:** create a Blueprint from `render.yaml`. Set the API's `DATABASE_URL` and `WEB_ORIGIN`. Migrations run on start.
-3. **Web:** the same blueprint creates `campusbazaar-web` (Docker). `API_URL` and `NEXT_PUBLIC_WS_URL` are baked in at build time, so change them in `render.yaml` if your API URL differs. Then set the API's `WEB_ORIGIN` to the web service URL.
+2. **API:** create a Render Blueprint from `render.yaml`. Set `DATABASE_URL` and `WEB_ORIGIN`. Migrations run on start, with Prisma's advisory lock off (the Neon pooler cannot take it; fine for one instance).
+3. **Web:** import the repo on Vercel with root `web/`. Set `API_URL` (the Render URL) and `NEXT_PUBLIC_WS_URL` (`wss://<render-host>/ws`). Then set the API's `WEB_ORIGIN` to the Vercel URL.
 4. Run `npm run db:seed` once against the Neon database for the demo data.
 
 Free Render services sleep after 15 minutes idle, so the first request can take about 30 seconds.
