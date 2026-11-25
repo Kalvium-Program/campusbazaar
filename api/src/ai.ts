@@ -51,14 +51,13 @@ export const fakeProvider: Provider = async ({ notes }) => {
   });
 };
 
-export const openAiProvider: Provider = async ({ notes }, signal) => {
-  if (!config.AI_BASE_URL || !config.AI_MODEL) throw new HttpError(503, "AI_NOT_CONFIGURED", "AI helper is not configured");
-  const res = await fetch(`${config.AI_BASE_URL.replace(/\/$/, "")}/chat/completions`, {
+async function callModel(model: string, notes: string, signal: AbortSignal) {
+  return fetch(`${config.AI_BASE_URL!.replace(/\/$/, "")}/chat/completions`, {
     method: "POST",
     signal,
     headers: { "content-type": "application/json", ...(config.AI_API_KEY ? { authorization: `Bearer ${config.AI_API_KEY}` } : {}) },
     body: JSON.stringify({
-      model: config.AI_MODEL,
+      model,
       temperature: 0.4,
       response_format: { type: "json_object" },
       messages: [
@@ -67,9 +66,24 @@ export const openAiProvider: Provider = async ({ notes }, signal) => {
       ],
     }),
   });
-  if (!res.ok) throw new Error(`AI provider returned ${res.status}: ${(await res.text()).slice(0, 300)}`);
-  const json = (await res.json()) as { choices?: { message?: { content?: string } }[] };
-  return json.choices?.[0]?.message?.content ?? "";
+}
+
+export const openAiProvider: Provider = async ({ notes }, signal) => {
+  if (!config.AI_BASE_URL || !config.AI_MODEL) throw new HttpError(503, "AI_NOT_CONFIGURED", "AI helper is not configured");
+  const models = [config.AI_MODEL, ...(config.AI_FALLBACK_MODELS?.split(",").map((m) => m.trim()).filter(Boolean) ?? [])];
+  let last = "no model tried";
+  for (const model of models) {
+    const res = await callModel(model, notes, signal);
+    if (res.ok) {
+      const json = (await res.json()) as { choices?: { message?: { content?: string } }[] };
+      return json.choices?.[0]?.message?.content ?? "";
+    }
+    last = `${model} returned ${res.status}: ${(await res.text()).slice(0, 200)}`;
+    console.error(`[ai] ${last}`);
+    // Busy or retired model: try the next one. Anything else (bad key, bad request) will not improve.
+    if (![404, 429, 500, 502, 503, 504].includes(res.status)) break;
+  }
+  throw new Error(`AI provider failed: ${last}`);
 };
 
 export const defaultProvider: Provider = config.AI_PROVIDER === "openai" ? openAiProvider : fakeProvider;
@@ -98,6 +112,7 @@ export async function draftListing(input: DraftInput, provider: Provider = defau
       if (e instanceof HttpError) throw e;
       console.error(`[ai] attempt ${attempt + 1} failed:`, e instanceof Error ? e.message : e);
       if (attempt === 1) break;
+      await new Promise((r) => setTimeout(r, 1500)); // let a busy provider breathe
     } finally {
       clearTimeout(timer);
     }

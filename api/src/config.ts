@@ -9,6 +9,8 @@ const schema = z.object({
   AI_PROVIDER: z.enum(["fake", "openai"]).default("fake"),
   AI_BASE_URL: z.string().url().optional(),
   AI_MODEL: z.string().optional(),
+  // Comma-separated backups, tried in order when the main model is busy (429/5xx) or gone (404).
+  AI_FALLBACK_MODELS: z.string().optional(),
   AI_API_KEY: z.string().optional(),
 });
 
