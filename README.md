@@ -2,7 +2,7 @@
 
 A small marketplace where students buy and sell used books, gadgets, cycles and furniture on campus. It is the **reference app** for the Kalvium course *AI-Powered Full Stack Web Development*: a complete, working product built only with the tools the course teaches.
 
-> Live demo: _add URL after deploy_ · Log in with `aarav@campus.test` / `campus123`
+> Live demo: https://campusbazaar-phi.vercel.app · API: https://campusbazaar-api.onrender.com · Log in with `aarav@campus.test` / `campus123`
 
 ## What you can do
 
@@ -85,7 +85,7 @@ npm run test:e2e                          # 7 browser tests; needs API and web r
 3. **Web:** import the repo on Vercel with root `web/`. Set `API_URL` (the Render URL) and `NEXT_PUBLIC_WS_URL` (`wss://<render-host>/ws`). Then set the API's `WEB_ORIGIN` to the Vercel URL.
 4. Run `npm run db:seed` once against the Neon database for the demo data.
 
-Free Render services sleep after 15 minutes idle, so the first request can take about 30 seconds.
+The first visit after a quiet spell can take up to a minute while the free API wakes. Free Render services sleep after 15 minutes idle, so the first request can take about 30 seconds.
 
 ## Decisions worth knowing
 
