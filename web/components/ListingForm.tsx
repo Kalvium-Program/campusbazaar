@@ -53,14 +53,19 @@ export function ListingForm({ existing }: { existing?: Listing }) {
   return (
     <form ref={form} onSubmit={submit} noValidate className="stack">
       {!existing && (
-        <div className="card pad">
+        <div className="card pad ai-box">
           <h2>Let the AI write a first draft</h2>
           <p className="muted small">Type a few words about the item. The helper suggests a title, description, price, category and condition. It can be wrong, so always check it.</p>
           <label className="sr-only" htmlFor="notes">Notes about your item</label>
           <textarea id="notes" className="input" style={{ minHeight: 70 }} value={aiNotes} onChange={(e) => setAiNotes(e.target.value)} placeholder="e.g. Hero cycle, 21 gears, new tyres, about 4000 rupees" />
+          <div className="tags" aria-label="Examples">
+            {["Hero cycle, 21 gears, new tyres, 4000 rupees", "Casio calculator, barely used, 600", "CLRS algorithms book, some highlights, 450"].map((t) => (
+              <button key={t} type="button" className="tag" onClick={() => setAiNotes(t)}>{t}</button>
+            ))}
+          </div>
           <div className="row" style={{ marginTop: "0.6rem" }}>
-            <button type="button" className="btn" disabled={draft.isPending || aiNotes.trim().length < 5} onClick={() => { setAiMsg(null); draft.mutate(); }}>
-              {draft.isPending ? "Writing…" : "Write my listing"}
+            <button type="button" className="btn primary" disabled={draft.isPending || aiNotes.trim().length < 5} onClick={() => { setAiMsg(null); draft.mutate(); }}>
+              {draft.isPending ? "Writing…" : "✨ Write my listing"}
             </button>
             {aiMsg && <span className={`notice ${aiMsg.kind}`} role="status">{aiMsg.text}</span>}
           </div>

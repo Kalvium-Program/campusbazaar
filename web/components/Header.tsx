@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { post } from "@/lib/api";
 import { useMe } from "@/lib/hooks";
+import { initials } from "@/lib/api";
 
 export function Header() {
   const { data: me, isPending } = useMe();
@@ -30,10 +31,11 @@ export function Header() {
           <Link href="/" className={cls("/")}>Browse</Link>
           {isPending ? null : me ? (
             <>
-              <Link href="/sell" className={cls("/sell")}>Sell</Link>
+              <Link href="/sell" className={cls("/sell")}>＋ Sell</Link>
               <Link href="/messages" className={cls("/messages")}>Messages</Link>
+              <Link href="/saved" className={cls("/saved")}>♥ Saved</Link>
               <Link href="/me" className={cls("/me")}>My listings</Link>
-              <button className="link" onClick={logout}>Log out ({me.name.split(" ")[0]})</button>
+              <button className="link" onClick={logout} title="Log out"><span className="avatar">{initials(me.name)}</span> Log out</button>
             </>
           ) : (
             <>

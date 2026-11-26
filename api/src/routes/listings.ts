@@ -33,7 +33,7 @@ const listQuery = z.object({
   minPrice: z.coerce.number().int().min(0).optional(),
   maxPrice: z.coerce.number().int().min(0).optional(),
   mine: z.enum(["true", "false"]).optional(),
-  sort: z.enum(["newest", "price_asc", "price_desc"]).default("newest"),
+  sort: z.enum(["newest", "price_asc", "price_desc", "popular"]).default("newest"),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(24).default(12),
 });
@@ -41,12 +41,19 @@ const listQuery = z.object({
 // Never send the image bytes in JSON. The page loads them from /listings/:id/image.
 const select = {
   id: true, title: true, description: true, priceRupees: true, category: true, condition: true,
-  status: true, createdAt: true, imageType: true,
+  status: true, createdAt: true, imageType: true, views: true,
+  _count: { select: { favorites: true } },
   owner: { select: { id: true, name: true } },
 } satisfies Prisma.ListingSelect;
 
 type Row = Prisma.ListingGetPayload<{ select: typeof select }>;
-const shape = ({ imageType, ...rest }: Row) => ({ ...rest, hasImage: Boolean(imageType) });
+const shape = ({ imageType, _count, ...rest }: Row) => ({ ...rest, hasImage: Boolean(imageType), saves: _count.favorites });
+
+// My saved listings (newest save first).
+listingsRouter.get("/saved/mine", requireAuth, async (req, res) => {
+  const rows = await db.favorite.findMany({ where: { userId: req.user!.id }, orderBy: { createdAt: "desc" }, take: 100, select: { listing: { select } } });
+  res.json({ items: rows.map((r) => shape(r.listing)) });
+});
 
 listingsRouter.get("/", async (req, res) => {
   const q = listQuery.parse(req.query);
@@ -61,7 +68,7 @@ listingsRouter.get("/", async (req, res) => {
   };
   if (q.mine === "true" && !req.user) throw new HttpError(401, "UNAUTHORIZED", "Please log in");
   const orderBy: Prisma.ListingOrderByWithRelationInput =
-    q.sort === "price_asc" ? { priceRupees: "asc" } : q.sort === "price_desc" ? { priceRupees: "desc" } : { createdAt: "desc" };
+    q.sort === "price_asc" ? { priceRupees: "asc" } : q.sort === "price_desc" ? { priceRupees: "desc" } : q.sort === "popular" ? { views: "desc" } : { createdAt: "desc" };
 
   const [total, rows] = await Promise.all([
     db.listing.count({ where }),
@@ -74,7 +81,40 @@ listingsRouter.get("/:id", async (req, res) => {
   const id = z.coerce.number().int().positive().parse(req.params.id);
   const row = await db.listing.findUnique({ where: { id }, select });
   if (!row) throw notFound("Listing");
+  // Count a view unless the seller is looking at their own listing.
+  if (req.user?.id !== row.owner.id) {
+    await db.listing.update({ where: { id }, data: { views: { increment: 1 } }, select: { id: true } }).catch(() => {});
+    row.views += 1;
+  }
   res.json({ listing: shape(row) });
+});
+
+// More from the same category, close in price.
+listingsRouter.get("/:id/similar", async (req, res) => {
+  const id = z.coerce.number().int().positive().parse(req.params.id);
+  const base = await db.listing.findUnique({ where: { id }, select: { category: true, priceRupees: true } });
+  if (!base) throw notFound("Listing");
+  const rows = await db.listing.findMany({
+    where: { id: { not: id }, status: "AVAILABLE", category: base.category },
+    orderBy: { createdAt: "desc" },
+    take: 30,
+    select,
+  });
+  rows.sort((a, b) => Math.abs(a.priceRupees - base.priceRupees) - Math.abs(b.priceRupees - base.priceRupees));
+  res.json({ items: rows.slice(0, 4).map(shape) });
+});
+
+// Save or unsave a listing. Both are safe to repeat.
+listingsRouter.put("/:id/favorite", requireAuth, async (req, res) => {
+  const listingId = z.coerce.number().int().positive().parse(req.params.id);
+  if (!(await db.listing.findUnique({ where: { id: listingId }, select: { id: true } }))) throw notFound("Listing");
+  await db.favorite.upsert({ where: { userId_listingId: { userId: req.user!.id, listingId } }, create: { userId: req.user!.id, listingId }, update: {} });
+  res.status(204).end();
+});
+listingsRouter.delete("/:id/favorite", requireAuth, async (req, res) => {
+  const listingId = z.coerce.number().int().positive().parse(req.params.id);
+  await db.favorite.deleteMany({ where: { userId: req.user!.id, listingId } });
+  res.status(204).end();
 });
 
 listingsRouter.get("/:id/image", async (req, res) => {

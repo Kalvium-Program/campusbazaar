@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 // Next.js 16 "proxy" (was middleware). A cheap first gate: if there is no login
 // cookie, go to /login. The API still checks the cookie on every request.
-const PROTECTED = ["/sell", "/me", "/messages", "/listings/new"];
+const PROTECTED = ["/sell", "/me", "/messages", "/saved", "/listings/new"];
 
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -16,4 +16,4 @@ export function proxy(req: NextRequest) {
   return NextResponse.next();
 }
 
-export const config = { matcher: ["/sell/:path*", "/me/:path*", "/messages/:path*", "/listings/:id/edit"] };
+export const config = { matcher: ["/sell/:path*", "/me/:path*", "/messages/:path*", "/saved/:path*", "/listings/:id/edit"] };

@@ -26,9 +26,10 @@ export function createApp(opts: { provider?: Provider } = {}) {
   app.use(cookieParser());
   app.use(loadUser);
 
+  // Hit by the web app and an uptime pinger. Touching the database keeps the free Neon database awake too.
   app.get("/api/health", async (_req, res) => {
     await db.$queryRaw`SELECT 1`;
-    res.json({ ok: true });
+    res.set("Cache-Control", "no-store").json({ ok: true });
   });
   app.use("/api/auth", authRouter);
   app.use("/api/listings", listingsRouter);

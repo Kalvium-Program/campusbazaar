@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ListingActions } from "@/components/ListingActions";
-import { CATEGORIES, CONDITIONS, imageUrl, label, rupees } from "@/lib/api";
+import { SaveButton } from "@/components/SaveButton";
+import { ShareButton } from "@/components/ShareButton";
+import { Similar } from "@/components/Similar";
+import { CATEGORIES, CATEGORY_ICON, CONDITIONS, imageUrl, initials, label, rupees, timeAgo } from "@/lib/api";
 import { getListing } from "@/lib/server";
 
 type Props = { params: Promise<{ id: string }> };
@@ -18,13 +21,14 @@ export default async function Page({ params }: Props) {
   const l = await getListing(id);
   if (!l) notFound();
   return (
+    <>
     <article className="detail">
       <div className="detail-img">
         {l.hasImage ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={imageUrl(l.id)} alt={l.title} style={{ width: "100%" }} />
         ) : (
-          <div className="thumb-empty" style={{ minHeight: 280 }}>No photo</div>
+          <div className="thumb-empty" style={{ minHeight: 320, fontSize: "4rem" }}>{CATEGORY_ICON[l.category]}</div>
         )}
       </div>
       <div>
@@ -37,11 +41,21 @@ export default async function Page({ params }: Props) {
         <p>{l.description}</p>
         <dl className="facts">
           <dt>Condition</dt><dd>{label(CONDITIONS, l.condition)}</dd>
-          <dt>Seller</dt><dd>{l.owner.name}</dd>
-          <dt>Posted</dt><dd>{new Date(l.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</dd>
+          <dt>Posted</dt><dd>{timeAgo(l.createdAt)}</dd>
         </dl>
+        <div className="seller-card">
+          <span className="avatar lg">{initials(l.owner.name)}</span>
+          <div><strong>{l.owner.name}</strong><div className="muted small">Student seller</div></div>
+        </div>
+        <div className="row" style={{ marginBottom: "1rem" }}>
+          <SaveButton id={l.id} variant="full" />
+          <ShareButton title={l.title} />
+          <span className="stats"><span>👁 {l.views} {l.views === 1 ? "view" : "views"}</span><span>♥ {l.saves} saved</span></span>
+        </div>
         <ListingActions listing={l} />
       </div>
     </article>
+    <Similar id={l.id} />
+    </>
   );
 }

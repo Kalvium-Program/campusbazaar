@@ -2,7 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { api, CATEGORIES, type ListingPage } from "@/lib/api";
+import { api, CATEGORIES, CATEGORY_ICON, type ListingPage } from "@/lib/api";
 import { ListingCard, ListingSkeletons } from "./ListingCard";
 
 // The URL is the state: refresh or share the link and you get the same view.
@@ -49,9 +49,9 @@ export function Browse() {
   return (
     <section aria-label="Listings">
       <div className="chips" role="group" aria-label="Category">
-        <button className="chip" aria-pressed={!category} onClick={() => set({ category: "" })}>All</button>
+        <button className="chip" aria-pressed={!category} onClick={() => set({ category: "" })}>🛍️ All</button>
         {CATEGORIES.map((c) => (
-          <button key={c.value} className="chip" aria-pressed={category === c.value} onClick={() => set({ category: c.value })}>{c.label}</button>
+          <button key={c.value} className="chip" aria-pressed={category === c.value} onClick={() => set({ category: c.value })}>{CATEGORY_ICON[c.value]} {c.label}</button>
         ))}
       </div>
 
@@ -73,6 +73,7 @@ export function Browse() {
           <label className="sr-only" htmlFor="sort">Sort</label>
           <select id="sort" className="input" value={sort} onChange={(e) => set({ sort: e.target.value })}>
             <option value="newest">Newest first</option>
+            <option value="popular">Most viewed</option>
             <option value="price_asc">Price: low to high</option>
             <option value="price_desc">Price: high to low</option>
           </select>
@@ -95,7 +96,7 @@ export function Browse() {
         </div>
       ) : data.items.length === 0 ? (
         <div className="empty">
-          <h2>Nothing matches</h2>
+          <div className="empty-icon">🔍</div><h2>Nothing matches</h2>
           <p>Try a different word, or clear the filters.</p>
           <button className="btn" onClick={() => router.replace("/")}>Clear filters</button>
         </div>

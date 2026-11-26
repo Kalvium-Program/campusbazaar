@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Header } from "@/components/Header";
+import { WakeBanner } from "@/components/WakeBanner";
 import "./globals.css";
 import { Providers } from "./providers";
 
@@ -15,9 +16,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body>
         <Providers>
           <Header />
-          <main className="container page">{children}</main>
+          <main className="container page">
+            <WakeBanner />
+            {children}
+          </main>
           <footer className="footer">
-            <div className="container">CampusBazaar: a demo marketplace built for the Kalvium course. Not a real store.</div>
+            <div className="container">CampusBazaar · by students, for students. Built for the Kalvium course.</div>
           </footer>
         </Providers>
       </body>

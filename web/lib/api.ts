@@ -5,7 +5,7 @@ export type Condition = "NEW" | "LIKE_NEW" | "GOOD" | "FAIR";
 export type Listing = {
   id: number; title: string; description: string; priceRupees: number;
   category: Category; condition: Condition; status: "AVAILABLE" | "SOLD";
-  createdAt: string; hasImage: boolean; owner: { id: number; name: string };
+  createdAt: string; hasImage: boolean; views: number; saves: number; owner: { id: number; name: string };
 };
 export type ListingPage = { items: Listing[]; page: number; limit: number; total: number; totalPages: number };
 export type Message = { id: number; body: string; senderId: number; createdAt: string; sender: { id: number; name: string } };
@@ -51,3 +51,11 @@ export const CONDITIONS: { value: Condition; label: string }[] = [
   { value: "GOOD", label: "Good" }, { value: "FAIR", label: "Fair" },
 ];
 export const label = (list: { value: string; label: string }[], v: string) => list.find((x) => x.value === v)?.label ?? v;
+
+export const CATEGORY_ICON: Record<Category, string> = { BOOKS: "📚", ELECTRONICS: "🎧", FURNITURE: "🪑", CYCLES: "🚲", CLOTHING: "👕", OTHER: "✨" };
+export function timeAgo(iso: string) {
+  const s = Math.max(1, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
+  for (const [n, u] of [[86400 * 30, "mo"], [86400 * 7, "w"], [86400, "d"], [3600, "h"], [60, "m"]] as const) if (s >= n) return `${Math.floor(s / n)}${u} ago`;
+  return "just now";
+}
+export const initials = (name: string) => name.split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase();

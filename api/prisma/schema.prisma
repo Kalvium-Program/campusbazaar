@@ -43,6 +43,7 @@ model User {
   listings     Listing[]
   sent         Message[] @relation("sent")
   received     Message[] @relation("received")
+  favorites    Favorite[]
 }
 
 model Listing {
@@ -53,11 +54,13 @@ model Listing {
   category    Category
   condition   Condition
   status      Status    @default(AVAILABLE)
+  views       Int       @default(0)
   imageData   Bytes?
   imageType   String?
   ownerId     Int
   owner       User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   messages    Message[]
+  favorites   Favorite[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -77,4 +80,15 @@ model Message {
   createdAt  DateTime @default(now())
 
   @@index([listingId, createdAt])
+}
+
+model Favorite {
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listingId Int
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, listingId])
+  @@index([listingId])
 }
